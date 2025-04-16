@@ -19,7 +19,7 @@ function TodoForm({onAddTodo}) {
     Disables "Add Todo" button if the input is empty
     */ 
     <form onSubmit={handleAddTodo}>
-      <label htmlFor="todoTitle">Todo</label>
+      <label htmlFor="todoTitle">Todo </label>
       <input 
         id="todoTitle" 
         name="title" 
