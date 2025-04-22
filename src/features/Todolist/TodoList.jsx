@@ -1,12 +1,18 @@
 import TodoListItem from "./TodoListItem";
 
-function TodoList({ todoList, onCompleteTodo }) {
+function TodoList({ todoList, onCompleteTodo, onUpdateTodo }) {
+  // contains todoList that has been filtered to remove any whose .isCompleted property is not true
   const filteredTodoList = todoList.filter((todo) => !todo.isCompleted);
   return (
     <>
       <ul>
-        {/* Added a second argument "index" to address error: 
-      "Each child in a list should have a unique "key" prop"." */}
+        {/* 
+        If true -> render a paragrah tag ("Add todo above...")
+        If false -> render unordered
+        *filteredTodoList replaces todoList
+
+        Added a second argument "index" to address error: 
+        "Each child in a list should have a unique "key" prop"." */}
         {filteredTodoList.length === 0 ? (
           <p>Add todo above to get started</p>
         ) : (
@@ -15,6 +21,7 @@ function TodoList({ todoList, onCompleteTodo }) {
               todo={todo}
               key={index}
               onCompleteTodo={onCompleteTodo}
+              onUpdateTodo={onUpdateTodo}
             />
           ))
         )}
@@ -22,4 +29,5 @@ function TodoList({ todoList, onCompleteTodo }) {
     </>
   );
 }
+
 export default TodoList;
