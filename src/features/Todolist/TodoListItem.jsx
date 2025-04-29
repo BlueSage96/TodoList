@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import InputLabel from "../../shared/TextInputWithLabel.jsx";
 
 function TodoListItem({ todo, onCompleteTodo, onUpdateTodo }) {
@@ -20,6 +20,10 @@ function TodoListItem({ todo, onCompleteTodo, onUpdateTodo }) {
     onUpdateTodo(todo.id, workingTitle);
     setIsEditing(false);
   }
+
+  useEffect(() => {
+    setWorkingTitle(todo.title);
+  }, [todo]);
 
   return (
     <li>
