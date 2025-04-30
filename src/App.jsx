@@ -11,6 +11,38 @@ function App() {
 
   const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
   const token = `Bearer ${import.meta.env.VITE_PAT}`;
+
+  //make an async function to fetch todos from Airtable API and call in the below functions
+  const syncTodos = async (todo) => {
+    const payload = {
+      records: [
+        {
+          id: todo.id,
+          fields: {
+            title: todo.title,
+            isCompleted: todo.isCompleted,
+          },
+        },
+      ],
+    };
+    const options = { 
+      method: "PATCH",
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    }
+    const response = await fetch(url,options);
+    if(!response.ok){
+      throw new Error(response.message);
+    }
+    const {records} = await response.json();
+    return {
+      id: records.id,
+      ...records[0].fields,    
+    }
+  }
   
   /*
     Fetches todos from Airtable API
@@ -61,6 +93,7 @@ function App() {
   };
   fetchTodos();
 },[]);
+
 
   /* 
     Argument: newTask (originally newTodo)
@@ -120,50 +153,22 @@ function App() {
     const editedTodos = todoList.map((todo) => {
         return todo.id === id ? {...todo, title: newTitle} : todo; 
     });
-    setTodoList(editedTodos)
+    setTodoList(editedTodos);//optimistic update
     //saves original todo by finding it's associated object in the todoList array by each object's id
     const originalTodo = todoList.find((todo) => todo.id === id);
-    //fetch request using editedTodos
-    const payload = {
-      records: [
-        {
-          id: originalTodo.id,
-          fields: {
-            title: newTitle,
-            isCompleted: originalTodo.isCompleted,
-          },
-        },
-      ],
-    };
-    const options = {
-      method: "PATCH",
-      headers: {
-        Authorization: token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }
-    try{
-      const response = await fetch(url, options);
-      if(!response.ok){
-        throw new Error (response.message);
+  
+    try{  
+      //fetch request 
+    const syncedTodos = await syncTodos({
+      id: originalTodo.id,
+      title: newTitle,
+      isCompleted: originalTodo.isCompleted,
+    });
+      if(!syncedTodos.isCompleted){
+        syncedTodos.isCompleted = false;
       }
-      const {records} = await response.json();
-
-      if(!records || records.length === 0){
-        throw new Error("No records returned from server");
-      }
-
-      //object from Airtable  
-      const updatedTodo = {
-        id: records[0].id,
-        ...records[0].fields,//created table fields created are passed in as key/value pairs onto the updatdTodo object
-      }
-      if(!updatedTodo.isCompleted){
-        updatedTodo.isCompleted = false;
-      }
-      const updatedTodos = todoList.map((todo) => {
-        return todo.id === updatedTodo.id ? {...updatedTodo} : todo;
+      const updatedTodos = editedTodos.map((todo) => {
+        return todo.id === syncedTodos.id ? {...syncedTodos} : todo;
       });
       setTodoList(updatedTodos);
     }
@@ -194,42 +199,18 @@ function App() {
     //saves original todo by finding it's associated object in the todoList array by each object's id
     const completedTodo = todoList.find((todo) => todo.id === id);
     //fetch request using editedTodos
-    const payload = {
-      records: [
-        {
-          id: completedTodo.id,
-          fields: {
-            title: completedTodo.title,
-            isCompleted: true,//mark it completed
-          },
-        },
-      ],
-    };
-    const options = {
-      method: "PATCH",
-      headers: {
-        Authorization: token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }
+    
     try{
-      const resp = await fetch(url, options);
-      if(!resp.ok){
-        throw new Error (resp.message);
+      const syncedTodos = await syncTodos({
+         id: completedTodo.id,
+         title: completedTodo.title,
+         isCompleted: true,
+      })
+      if(!syncedTodos.isCompleted){
+        syncedTodos.isCompleted = false;
       }
-      const {records} = await resp.json();
-
-      //object from Airtable  
-      const updateCompleteTodo = {
-        id: records[0].id,
-        ...records[0].fields,//created table fields created are passed in as key/value pairs onto the updatdTodo object
-      }
-      if(!updateCompleteTodo.isCompleted){
-        updateCompleteTodo.isCompleted = false;
-      }
-      const refreshTodos = todoList.map((todo) => {
-        return todo.id === updateCompleteTodo.id ? {...updateCompleteTodo} : todo;
+      const refreshTodos = updatedTodos.map((todo) => {
+        return todo.id === syncedTodos.id ? {...syncedTodos} : todo;
       });
       setTodoList(refreshTodos);
     }

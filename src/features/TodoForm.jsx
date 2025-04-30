@@ -16,7 +16,7 @@ function TodoForm({ onAddTodo, isSaving }) {
     // prevents page from refreshing when a user clicks the "Add Todo" button
     event.preventDefault();
     const title = workingTodo.trim();
-    if(!title) return; //don't sumbmit if title is empty
+    if(!title) return; //don't submit if title is empty
     onAddTodo(title);
     setWorkingTodo("");
     todoTitleInput.current.focus(); //adds focus when clicking the "Add Todo" button
