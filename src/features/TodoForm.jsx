@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import InputLabel from "../shared/TextInputWithLabel.jsx";
 
-function TodoForm({ onAddTodo }) {
+function TodoForm({ onAddTodo, isSaving }) {
   const todoTitleInput = useRef();
   const [workingTodo, setWorkingTodo] = useState("");
 
@@ -16,6 +16,7 @@ function TodoForm({ onAddTodo }) {
     // prevents page from refreshing when a user clicks the "Add Todo" button
     event.preventDefault();
     const title = workingTodo.trim();
+    if(!title) return; //don't submit if title is empty
     onAddTodo(title);
     setWorkingTodo("");
     todoTitleInput.current.focus(); //adds focus when clicking the "Add Todo" button
@@ -35,7 +36,7 @@ function TodoForm({ onAddTodo }) {
         onChange={(event) => setWorkingTodo(event.target.value)}
       />
 
-      <button disabled={!workingTodo}>Add Todo</button>
+      <button disabled={!workingTodo}>{isSaving ? "Saving...": "Add Todo"}</button>
     </form>
   );
 }
