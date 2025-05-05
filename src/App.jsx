@@ -1,13 +1,33 @@
 import "./App.css";
-import TodoList from "./features/Todolist/TodoList.jsx";
-import AddTodoForm from "./features/TodoForm.jsx";
 import { useState, useEffect } from "react";
+import TodoList from "./features/Todolist/TodoList";
+import AddTodoForm from "./features/TodoForm";
+import ViewForm from "./features/TodosViewForm";
+
+/*
+  Arguments: sortField, sortDirection, baseUrl, quearyString
+  Enhanced url sorting and filtering (querying)
+  Returns a template literal that appends the query parameters to url
+  **Adding encodeURL() around template literal causes error: "maximum call stack size exceeded"
+  Replaces url in the fetch lines belows
+*/ 
+const encodeURL = ({sortField, sortDirection, baseUrl, queryString}) => {
+  let searchQuery = "";
+  let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
+  if (queryString){
+    searchQuery = `&filterByFormula=SEARCH("${queryString}",+title)`;
+  }
+   return `${baseUrl}?${sortQuery}${searchQuery}`;
+}
 
 function App() {
   const [todoList, setTodoList] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [sortField, setSortField] = useState("createdTime");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [queryString, setQueryString] = useState("");
 
   const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
   const token = `Bearer ${import.meta.env.VITE_PAT}`;
@@ -33,7 +53,11 @@ function App() {
       },
       body: JSON.stringify(payload)
     }
-    const response = await fetch(url,options);
+    const fetchURL = encodeURL({
+      sortField, sortDirection, baseUrl: url, queryString
+    });
+
+    const response = await fetch(fetchURL,options);
     if(!response.ok){
       throw new Error(response.message);
     }
@@ -53,6 +77,7 @@ function App() {
     5: If an error occurs, sets errorMessage to the error message
     6: Finally, sets isLoading to false
     7: useEffect is called when the component mounts, unmounts, or updates
+    8: added sortField, sortDirection, url, queryString, and token to dependency array
   */
   useEffect(() => {
     const fetchTodos = async () => {
@@ -63,8 +88,12 @@ function App() {
           "Authorization" : token,
       }, 
     };
+
+    const fetchURL = encodeURL({
+      sortField, sortDirection, baseUrl: url, queryString
+    });
      try {
-          const response = await fetch(url, options);
+          const response = await fetch(fetchURL, options);
           if(!response.ok){ //evaluates to false
             throw new Error(response.message);
           }
@@ -92,7 +121,7 @@ function App() {
       } 
   };
   fetchTodos();
-},[]);
+},[sortField, sortDirection, url, queryString, token]);
 
 
   /* 
@@ -126,7 +155,7 @@ function App() {
     }
     try{
       setIsSaving(true);
-      const resp = await fetch(url, options);
+      const resp = await fetch(encodeURL({sortField,sortDirection, baseUrl: url, queryString}), options);
       if(!resp.ok){
         throw new Error(resp.message);
       }
@@ -238,6 +267,11 @@ function App() {
       <TodoList todoList={todoList} onCompleteTodo={completeTodo} 
       onUpdateTodo={updateTodo} isLoading={isLoading}/>
 
+      <hr/>
+      <ViewForm sortDirection={sortDirection} setSortDirection={setSortDirection} 
+      sortField={sortField} setSortField={setSortField}
+      queryString={queryString} setQueryString={setQueryString}/>
+      <hr/>
       {/* Evaluates errorMessage */}
       {errorMessage && (
         <div>
