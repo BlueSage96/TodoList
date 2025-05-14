@@ -1,24 +1,8 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import TodoList from "./features/Todolist/TodoList";
 import AddTodoForm from "./features/TodoForm";
 import ViewForm from "./features/TodosViewForm";
-
-/*
-  Arguments: sortField, sortDirection, baseUrl, quearyString
-  Enhanced url sorting and filtering (querying)
-  Returns a template literal that appends the query parameters to url
-  **Adding encodeURL() around template literal causes error: "maximum call stack size exceeded"
-  Replaces url in the fetch lines belows
-*/ 
-const encodeURL = ({sortField, sortDirection, baseUrl, queryString}) => {
-  let searchQuery = "";
-  let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
-  if (queryString){
-    searchQuery = `&filterByFormula=SEARCH("${queryString}",+title)`;
-  }
-   return `${baseUrl}?${sortQuery}${searchQuery}`;
-}
 
 function App() {
   const [todoList, setTodoList] = useState([]); 
@@ -29,8 +13,24 @@ function App() {
   const [sortDirection, setSortDirection] = useState("desc");
   const [queryString, setQueryString] = useState("");
 
-  const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
+  const baseUrl = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
   const token = `Bearer ${import.meta.env.VITE_PAT}`;
+
+  /*
+    Arguments: sortField, sortDirection, baseUrl, quearyString
+    Enhanced url sorting and filtering (querying)
+    Returns a template literal that appends the query parameters to url
+    **Adding encodeURL() around template literal causes error: "maximum call stack size exceeded"
+    Replaces url in the fetch lines belows
+  */
+  const encodeURL = useCallback(() => {
+    let searchQuery = "";
+    let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
+    if (queryString){
+      searchQuery = `&filterByFormula=SEARCH("${queryString}",+title)`;
+    }
+    return `${baseUrl}?${sortQuery}${searchQuery}`;
+  }, [baseUrl,queryString,sortDirection,sortField]);
 
   //make an async function to fetch todos from Airtable API and call in the below functions
   const syncTodos = async (todo) => {
@@ -53,11 +53,8 @@ function App() {
       },
       body: JSON.stringify(payload)
     }
-    const fetchURL = encodeURL({
-      sortField, sortDirection, baseUrl: url, queryString
-    });
 
-    const response = await fetch(fetchURL,options);
+    const response = await fetch(encodeURL(),options);
     if(!response.ok){
       throw new Error(response.message);
     }
@@ -89,11 +86,8 @@ function App() {
       }, 
     };
 
-    const fetchURL = encodeURL({
-      sortField, sortDirection, baseUrl: url, queryString
-    });
      try {
-          const response = await fetch(fetchURL, options);
+          const response = await fetch(encodeURL(), options);
           if(!response.ok){ //evaluates to false
             throw new Error(response.message);
           }
@@ -121,7 +115,7 @@ function App() {
       } 
   };
   fetchTodos();
-},[sortField, sortDirection, url, queryString, token]);
+},[sortField, sortDirection, baseUrl, queryString, token]);
 
 
   /* 
@@ -155,7 +149,7 @@ function App() {
     }
     try{
       setIsSaving(true);
-      const resp = await fetch(encodeURL({sortField,sortDirection, baseUrl: url, queryString}), options);
+      const resp = await fetch(encodeURL(), options);
       if(!resp.ok){
         throw new Error(resp.message);
       }

@@ -1,8 +1,17 @@
+import { useState, useEffect } from 'react';
 /*
     Handles sorting & filtering user input and adding the necessary UI
     Also has a search field and clear button
 */
 function TodosViewForm ({ sortDirection, setSortDirection, sortField, setSortField, queryString, setQueryString }) {
+    const [localQueryString, setLocalQueryString] = useState(queryString);
+
+    useEffect(() => {
+        const debounce = setTimeout(() => setQueryString(localQueryString), 500);
+        return function () {
+            clearTimeout(debounce);
+        }
+    }, [localQueryString, setQueryString]);
 
     function preventRefresh (event) {
         if(event.key === 'Enter'){
@@ -13,8 +22,8 @@ function TodosViewForm ({ sortDirection, setSortDirection, sortField, setSortFie
         <form onSubmit={preventRefresh}>
             <div>
                 <label htmlFor="searchInput"> Search Todos: </label>
-                <input id="searchInput" type="text" value={queryString} onChange={(e) => {setQueryString(e.target.value)}}></input>
-                <button type="button" onClick={() => setQueryString("")}>Clear</button>
+                <input id="searchInput" type="text" value={localQueryString} onChange={(e) => {setLocalQueryString(e.target.value)}}></input>
+                <button type="button" onClick={() => setLocalQueryString("")}>Clear</button>
             </div>
             <div>
                 <label htmlFor="sortBy">Sort By </label>
