@@ -1,8 +1,10 @@
+import TuxCat from './assets/TuxCat.png';
 import "./App.css";
 import { useState, useEffect, useCallback } from "react";
 import TodoList from "./features/Todolist/TodoList";
 import AddTodoForm from "./features/TodoForm";
 import ViewForm from "./features/TodosViewForm";
+import StyledApp from './App.module.css';
 
 function App() {
   const [todoList, setTodoList] = useState([]); 
@@ -253,28 +255,34 @@ function App() {
   }
 
   return (
-    <div>
-      <h1>Todo List</h1>
-      {/* onAddTodo is a prop */}
-      <AddTodoForm onAddTodo={handleAddTodo} isSaving={isSaving}/>
-      
-      <TodoList todoList={todoList} onCompleteTodo={completeTodo} 
-      onUpdateTodo={updateTodo} isLoading={isLoading}/>
+    <>
+    <div className={StyledApp.catWrapper}>
+     
 
-      <hr/>
-      <ViewForm sortDirection={sortDirection} setSortDirection={setSortDirection} 
-      sortField={sortField} setSortField={setSortField}
-      queryString={queryString} setQueryString={setQueryString}/>
-      <hr/>
-      {/* Evaluates errorMessage */}
-      {errorMessage && (
-        <div>
-          <hr />
-          <p>{errorMessage}</p>
-          <button onClick={() => setErrorMessage("")}>Dismiss</button>
-        </div>
-      )}
+      <div className={StyledApp.todoBody}>
+            <h1>Todo List</h1>
+            {/* onAddTodo is a prop */}
+            <AddTodoForm onAddTodo={handleAddTodo} isSaving={isSaving}/>
+            
+            <TodoList todoList={todoList} onCompleteTodo={completeTodo} 
+            onUpdateTodo={updateTodo} isLoading={isLoading}/>
+
+            <hr/>
+            <ViewForm sortDirection={sortDirection} setSortDirection={setSortDirection} 
+            sortField={sortField} setSortField={setSortField}
+            queryString={queryString} setQueryString={setQueryString}/>
+            <hr/>
+            {/* Evaluates errorMessage */}
+            {errorMessage && (
+              <div className={StyledApp.error}>
+                <hr />
+                <p>{errorMessage}</p>
+                <button onClick={() => setErrorMessage("")}>Dismiss</button>
+              </div>
+            )}
+          </div>
     </div>
+    </> 
   );
 }
 

@@ -1,11 +1,12 @@
 import TodoListItem from "./TodoListItem";
+import StyledTodos from "./TodoList.module.css";
 
 function TodoList({ todoList, onCompleteTodo, onUpdateTodo, isLoading }) {
   // contains todoList that has been filtered to remove any whose .isCompleted property is not true
   const filteredTodoList = todoList.filter((todo) => todo?.isCompleted === false);
   return (
     <>
-      <ul>
+      <ul className={StyledTodos.todoList}>
         {isLoading ? 
         //Loading message displayed to user
         (<p>Todo list loading...</p>):

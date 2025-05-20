@@ -1,5 +1,12 @@
 /* Recommended approach to avoid performance problems. I researched and it's not recommended to use ref as a prop without using forwardRef */
 import React from 'react';
+import StyledInput from "styled-components";
+
+// move out of function to prevent focus issues
+const Input = StyledInput.input `
+        padding: 4px;
+    `
+
 const TextInputWithLabel = React.forwardRef(function TextInputWithLabel({elementId,label,onChange,value},ref){
     return (
         /*
@@ -8,7 +15,7 @@ const TextInputWithLabel = React.forwardRef(function TextInputWithLabel({element
         */ 
         <>
             <label htmlFor={elementId}>{label}</label>
-            <input type="text" 
+            <Input type="text" 
             id={elementId}  
             value={value} 
             onChange={onChange} 

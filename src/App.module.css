@@ -1,0 +1,32 @@
+.catWrapper {
+  background-image: url('./assets/TuxCat.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: contain;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 200px;
+  min-height: 100vh;
+}
+
+.todoBody {
+    background-color: blue;
+    display: grid;
+    border: 4px solid black;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+
+    /* Stretch width */
+    width: 90%;
+    max-width: 500px;
+
+    padding: 18px;
+    opacity: 91.5%;
+}
+
+.error {
+    border: 4px solid green;
+    padding: 8px;
+    margin-top: 8px;
+}
