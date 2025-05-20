@@ -5,6 +5,39 @@
   text-align: center;
 }
 
+body {
+  
+}
+
+h1 {
+  font-family: "Times New Roman", serif;
+  text-shadow: 3px 3px black;
+}
+
+form, label {
+  font-family: 'Aptos', sans-serif;
+  text-shadow: 2px 2px black;
+}
+
+ul {
+  font-size: 20px;
+}
+
+button {
+  font-family: 'Helvetica', sans-serif;
+  border: 1px solid tan;
+  height: 40px;
+}
+
+input {
+  color: yellow;
+}
+
+/* Hides dots */
+hr {
+  display: none;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

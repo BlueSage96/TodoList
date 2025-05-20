@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import InputLabel from "../shared/TextInputWithLabel.jsx";
+import StyledForm from "styled-components";
 
 function TodoForm({ onAddTodo, isSaving }) {
   const todoTitleInput = useRef();
@@ -21,6 +22,21 @@ function TodoForm({ onAddTodo, isSaving }) {
     setWorkingTodo("");
     todoTitleInput.current.focus(); //adds focus when clicking the "Add Todo" button
   }
+
+const Button = StyledForm.button `
+    margin: 2px 10px;
+
+    &:disabled {
+      font-style: italic;
+    }
+
+    &:hover {
+      background-color: purple;
+      color: white;
+      text-shadow: 2px 2px black;
+    }
+`
+
   return (
     /*
     When the form submits, the event listener will 
@@ -36,7 +52,7 @@ function TodoForm({ onAddTodo, isSaving }) {
         onChange={(event) => setWorkingTodo(event.target.value)}
       />
 
-      <button disabled={!workingTodo}>{isSaving ? "Saving...": "Add Todo"}</button>
+      <Button disabled={!workingTodo}>{isSaving ? "Saving...": "Add Todo"}</Button>
     </form>
   );
 }

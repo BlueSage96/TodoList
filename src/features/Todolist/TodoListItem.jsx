@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import InputLabel from "../../shared/TextInputWithLabel.jsx";
+import StyledItems from "./TodoListItem.module.css";
 
 function TodoListItem({ todo, onCompleteTodo, onUpdateTodo }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -24,9 +25,10 @@ function TodoListItem({ todo, onCompleteTodo, onUpdateTodo }) {
   useEffect(() => {
     setWorkingTitle(todo.title);
   }, [todo]);
+  
 
   return (
-    <li>
+    <li className={StyledItems.item}>
       <form onSubmit={handleUpdate}>
         {isEditing ? (
           <>
@@ -45,14 +47,16 @@ function TodoListItem({ todo, onCompleteTodo, onUpdateTodo }) {
             
             */
           <>
-            <label>
-              <input
-                type="checkbox"
+            <label className={StyledItems.container}>
+              
+              <input type="checkbox"
+
                 // template literals (`${}`) to create a unique id for each checkbox
                 id={`checkbox${todo.id}`}
                 checked={todo.isCompleted}
                 onChange={() => onCompleteTodo(todo.id)}
               />
+              <span className={StyledItems.check}></span>
             </label>
             <span onClick={() => setIsEditing(true)}>{todo.title}</span>
           </>
