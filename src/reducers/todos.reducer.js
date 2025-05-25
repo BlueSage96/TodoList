@@ -7,21 +7,24 @@
 const actions = {
     // from useEffect fetchTodos 
     fetchTodos: 'fetchTodos',
+    setIsLoading: 'setIsLoading',
+    setIsSaving: 'setIsSaving',
+    setErrorMessage: 'setErrorMessage',
+
 
     // from handleAddTodo
     startRequest: 'startRequest',
     addTodo: 'addTodo',
+    // newTodo: 'newTodo',
     endRequest: 'endRequest',
     setLoadError: 'setLoadError',
     
     // from updateTodo
     loadTodos: 'loadTodos',
     completeTodos: 'completeTodos',
-    updateTodos: 'updateTodos',
+    updatedTodos: 'updatedTodos',
     revertTodos: 'revertTodos',
-    
-    // from completeTodo
-    refreshTodos: 'refreshTodos',
+    editedTodos: 'editedTodos',
     
     // from error dismiss
     clearError: 'clearError',
@@ -32,7 +35,7 @@ const initialState = {
     todoList: [],
     isLoading: false,
     isSaving: false,
-    errorMessage: ' ',
+    errorMessage: '',
 };
 
 /*
@@ -52,6 +55,21 @@ function todoReducer (state = initialState, action) {
                 ...state,
                 isLoading: true,
             };
+        case actions.setIsLoading:
+            return {
+                ...state,
+                isLoading: action.value,
+            };
+        case actions.setIsSaving:
+            return {
+                ...state,
+                isSaving: action.value,
+            };
+        case actions.setErrorMessage:
+            return {
+                ...state,
+                errorMessage: action.value,
+            };
         case actions.startRequest:
             return {
                 ...state,
@@ -61,7 +79,7 @@ function todoReducer (state = initialState, action) {
             return {
                 ...state,
                 // savedTodo logic inline w/o declaring a variable
-                todoList: [...state.todoList, action.savedTodo, {
+                todoList: [...state.todoList, {
                     id: action.records[0].id,
                     ...action.records[0].fields,
                     isCompleted: action.records[0].fields.isCompleted || false,
@@ -76,6 +94,7 @@ function todoReducer (state = initialState, action) {
             };
         case actions.setLoadError:
             return {
+                ...state,
                 errorMessage: action.error.message,
                 isLoading: false,
             }
@@ -100,19 +119,33 @@ function todoReducer (state = initialState, action) {
        case actions.completeTodos:
             return {
                 ...state,
-                todoList: action.completeTodos,
+                todoList: action.updateTodos,
             };
-        case actions.updateTodos:
+        case actions.updatedTodos:
             return {
                 ...state,
-                todoList: action.updateTodos,
+                todoList: action.updatedTodos,
             };
         case actions.revertTodos:
             return {
                 ...state,
-                todoList: action.revertTodos,
+                todoList: state.todoList.map((todo) => {
+                    //Handle revert from updateTodo
+                    if (action.originalTodo && todo.id === action.originalTodo.id) {
+                        return { ...action.originalTodo };
+                    }
+                    //Handle revert from completeTodo
+                    if (action.completedTodo && todo.id === action.completedTodo.id) {
+                        return { ...action.completeTodo };
+                    }
+                    return todo;
+                }),
             };
- 
+        case actions.editedTodos:
+            return {
+                ...state,
+                todoList: action.editedTodos,
+            };
         case actions.clearError: 
             return {
                 ...state,
