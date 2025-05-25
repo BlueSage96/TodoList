@@ -6,26 +6,25 @@
 */ 
 const actions = {
     // from useEffect fetchTodos 
-    setIsLoading: 'setIsLoading',
-    setTodoList: 'setTodoList',
-    setErrorMessage: 'setErrorMessage',
+    fetchTodos: 'fetchTodos',
 
     // from handleAddTodo
-    setIsSaving: 'setIsSaving',
-    newTodo: 'newTodo',
-    savedTodo: 'savedTodo',
-    
+    startRequest: 'startRequest',
+    addTodo: 'addTodo',
+    endRequest: 'endRequest',
+    setLoadError: 'setLoadError',
     
     // from updateTodo
-    editedTodos: 'editedTodos',
-    updatedTodos: 'updatedTodos',
-    revertedTodos: 'revertedTodos',
+    loadTodos: 'loadTodos',
+    completeTodos: 'completeTodos',
+    updateTodos: 'updateTodos',
+    revertTodos: 'revertTodos',
     
     // from completeTodo
     refreshTodos: 'refreshTodos',
     
     // from error dismiss
-    errorMessage: 'errorMessage',
+    clearError: 'clearError',
 }
 
 // Starting values for all of the states that will be managed by the reducer
@@ -33,7 +32,7 @@ const initialState = {
     todoList: [],
     isLoading: false,
     isSaving: false,
-    error: ' ',
+    errorMessage: ' ',
 };
 
 /*
@@ -44,65 +43,77 @@ const initialState = {
 
     Switch Statement:
     -evaluates action.type and returns a new state:
-        -Simple state updates (setIsLoading, setTodoList, etc.)
-        -todo array updates (newTodo & savedTodo) adds a new todo to the existing array 
-        -replaces the entire todoList with a new array like mapping over todos to update one
-        (editedTodos, updatedTodos, etc.)
+       **update
 */ 
 function todoReducer (state = initialState, action) {
-    switch (action.type) {
-        case actions.setIsLoading:
+    switch (action.type) {  
+        case actions.fetchTodos:
             return {
                 ...state,
-                //handles direct state changes - setIsLoading(true) or setIsLoading(false)
-                isLoading: action.value, 
+                isLoading: true,
             };
-        case actions.setTodoList:
+        case actions.startRequest:
             return {
                 ...state,
-                todoList: action.value,
-            };  
-        case actions.setErrorMessage:
-        return {
-            ...state,
-            errorMessage: action.value,
-        };
-        case actions.setIsSaving:
-            return {
-                ...state,
-                isSaving: action.value,
+                isSaving: true,
             };
-        case actions.newTodo:
+        case actions.addTodo:
             return {
                 ...state,
-                todoList: [...state.todoList, action.newTodo],
+                // savedTodo logic inline w/o declaring a variable
+                todoList: [...state.todoList, action.savedTodo, {
+                    id: action.records[0].id,
+                    ...action.records[0].fields,
+                    isCompleted: action.records[0].fields.isCompleted || false,
+                }],
+                isSaving: false,
             };
-        case actions.savedTodo:
+        case actions.endRequest:
             return {
                 ...state,
-                todoList: [...state.todoList, action.savedTodo],
+                isLoading: false,
+                isSaving: false,
             };
-       case actions.editedTodos:
+        case actions.setLoadError:
+            return {
+                errorMessage: action.error.message,
+                isLoading: false,
+            }
+        case actions.loadTodos:
             return {
                 ...state,
-                todoList: action.editedTodos,
+                todoList: action.records.map((record) => {
+                    const todo = {
+                        id: record.id,
+                        ...record.fields,
+                        title: record.fields.title,
+                        isCompleted: record.fields.isCompleted,
+                    };
+                    if(!todo.isCompleted) {
+                        //if isCompleted isn't true, set it to false
+                        todo.isCompleted = false;
+                    };
+                    return todo;
+                }),
+                isLoading: false,
             };
-        case actions.updatedTodos:
+       case actions.completeTodos:
             return {
                 ...state,
-                todoList: action.updatedTodos,
+                todoList: action.completeTodos,
             };
-        case actions.revertedTodos:
+        case actions.updateTodos:
             return {
                 ...state,
-                todoList: action.revertedTodos,
+                todoList: action.updateTodos,
             };
-        case actions.refreshTodos:
+        case actions.revertTodos:
             return {
                 ...state,
-                todoList: action.refreshTodos,
+                todoList: action.revertTodos,
             };
-        case actions.errorMessage: 
+ 
+        case actions.clearError: 
             return {
                 ...state,
                 errorMessage: '',
