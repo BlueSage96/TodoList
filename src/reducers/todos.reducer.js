@@ -15,7 +15,6 @@ const actions = {
     // from handleAddTodo
     startRequest: 'startRequest',
     addTodo: 'addTodo',
-    // newTodo: 'newTodo',
     endRequest: 'endRequest',
     setLoadError: 'setLoadError',
     
@@ -28,6 +27,11 @@ const actions = {
     
     // from error dismiss
     clearError: 'clearError',
+
+    //sorting & filtering
+    setSortDirection: 'setSortDirection',
+    setSortField: 'setSortField',
+    setQueryString: 'setQueryString'
 }
 
 // Starting values for all of the states that will be managed by the reducer
@@ -36,6 +40,9 @@ const initialState = {
     isLoading: false,
     isSaving: false,
     errorMessage: '',
+    sortDirection: 'desc',
+    sortField: 'createdTime',
+    queryString: ''
 };
 
 /*
@@ -150,6 +157,21 @@ function todoReducer (state = initialState, action) {
             return {
                 ...state,
                 errorMessage: '',
+            };
+        case actions.setSortDirection:
+            return {
+                ...state,
+                sortDirection: action.value,
+            };
+        case actions.setSortField:
+            return {
+                ...state,
+                sortField: action.value,
+            };
+        case actions.setQueryString:
+            return {
+                ...state,
+                queryString: action.value,
             };
         default:
             return state;
