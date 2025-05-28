@@ -37,8 +37,8 @@ function TodoListItem({ todo, onCompleteTodo, onUpdateTodo }) {
               //placeholder handler to silence the error (You provided a `value` prop to a form field without an `onChange` handler...) for now
               onChange={handleEdit}
             />
-            <button type="button" onClick={handleUpdate}>Update</button>
-            <button type="button" onClick={handleCancel}>Cancel</button>
+            <button className={StyledItems.update} type="button" onClick={handleUpdate}>Update</button>
+            <button className={StyledItems.cancel} type="button" onClick={handleCancel}>Cancel</button>
           </>
         ) : (
           /*

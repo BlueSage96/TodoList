@@ -214,32 +214,30 @@ function App() {
     2: Else if current todo.id != id -> return todo
   */
   const completeTodo = async(id) => {
-    const updatedTodos = todoState.todoList.map((todo) => {
-      return todo.id === id ? { ...todo, isCompleted: true } : todo;
-    });
+  
       dispatch({
-         type: todoActions.updatedTodos,
-         updatedTodos: updatedTodos
+         type: todoActions.completeTodos,
+         id
       })
-    //saves original todo by finding it's associated object in the todoList array by each object's id
-    const completedTodo = todoState.todoList.find((todo) => todo.id === id);
-    //fetch request using editedTodos
+
     
     try{
-      await syncTodos({
-         id: completedTodo.id,
-         title: completedTodo.title,
-         isCompleted: true,
-      }) 
+      const todo = todoState.todoList.find((todo) => todo.id === id);
+      const updatedStatus = !todo.isCompleted;
+      await fetch( `${baseUrl}/${id}`, {
+        method: "PATCH",
+        headers : {
+          Authorization: token,
+          "Content-Type" : "application/json",
+        },
+        body: JSON.stringify({fields: { isCompleted: updatedStatus}})
+      })
     }
     catch(error){
       dispatch({
-          type: todoActions.setErrorMessage,
-          error: error
-      })
-      dispatch({
          type: todoActions.revertTodos,
-         completedTodo: completedTodo
+         editedTodo: todoState.todoList,
+         error
       })
     }
     finally{
