@@ -4,6 +4,7 @@ import TodoList from "./features/Todolist/TodoList";
 import AddTodoForm from "./features/TodoForm";
 import ViewForm from "./features/TodosViewForm";
 import StyledApp from './App.module.css';
+import Page from "./pages/TodosPage";
 
 import {
   todoReducer as todosReducer,
@@ -262,35 +263,17 @@ function App() {
 
   return (
     <>
-    <div className={StyledApp.catWrapper}>
-      <div className={StyledApp.todoBody}>
-            <h1>Todo List</h1>
-            {/* onAddTodo is a prop */}
-            <AddTodoForm onAddTodo={handleAddTodo} isSaving={todoState.isSaving}/>
-            
-            <TodoList todoList={todoState.todoList} onCompleteTodo={completeTodo} 
-            onUpdateTodo={updateTodo} isLoading={todoState.isLoading}/>
-
-            <hr/>
-            <ViewForm 
-            sortDirection={todoState.sortDirection} 
-            setSortDirection={handleSetSortDirection} 
-            sortField={todoState.sortField} 
-            setSortField={handleSetSortField}
-            queryString={todoState.queryString} 
-            setQueryString={handleSetQueryString}
-            />
-            <hr/>
-            {/* Evaluates errorMessage */}
-            {todoState.errorMessage && (
-              <div className={StyledApp.error}>
-                <hr />
-                <p>{todoState.errorMessage}</p>
-                <button onClick={() => dispatch({type: todoActions.clearError})}>Dismiss</button>
-              </div>
-            )}
-          </div>
-    </div>
+      <Page 
+      dispatch={dispatch}
+      todoState={todoState}
+      todoActions={todoActions}
+      onAddTodo={handleAddTodo}
+      onCompleteTodo={completeTodo}
+      onUpdateTodo={updateTodo}
+      setSortDirection={handleSetSortDirection}
+      setSortField={handleSetSortField}
+      setQueryString={handleSetQueryString}
+      />
     </> 
   );
 }
