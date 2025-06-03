@@ -1,10 +1,11 @@
 import "./App.css";
-import { useEffect, useCallback, useReducer } from "react";
-import TodoList from "./features/Todolist/TodoList";
-import AddTodoForm from "./features/TodoForm";
-import ViewForm from "./features/TodosViewForm";
-import StyledApp from './App.module.css';
-import Page from "./pages/TodosPage";
+import StyledApp from "./App.module.css";
+import { useState, useEffect, useCallback, useReducer } from "react";
+import { useLocation, Routes, Route, useSearchParams, useNavigate } from 'react-router';
+import TodosPage from "./pages/TodosPage";
+import Header from "./shared/HeaderNav";
+import About from "./pages/About";
+import NotFound from "./pages/NotFound";
 
 import {
   todoReducer as todosReducer,
@@ -14,6 +15,21 @@ import {
 
 function App() {
   const [todoState, dispatch] = useReducer(todosReducer, initialTodosState);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const filteredTodoList = todoState.todoList.filter(todo => !todo.isCompleted);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const itemsPerPage = 15;
+  /*
+    the numerical value of the 'page' param in the URL
+    have to parseInt the value since params are always returned as strings
+  */
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const indexOfFirstTodo = (currentPage - 1 ) * itemsPerPage;
+  const indexOfLastTodo = indexOfFirstTodo + itemsPerPage;
+  const currentTodos = filteredTodoList.slice(indexOfFirstTodo, indexOfLastTodo);
+  const totalPages = Math.ceil((filteredTodoList.length)/itemsPerPage);
+  const [title, setTitle] = useState("");
   const baseUrl = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
   const token = `Bearer ${import.meta.env.VITE_PAT}`;
 
@@ -114,7 +130,17 @@ function App() {
     fetchTodos();
   },[encodeURL,todoState.sortField, todoState.sortDirection, baseUrl, todoState.queryString, token]);
 
-
+  useEffect(() => {
+     if (location.pathname === "/") {
+        setTitle("Todo List");
+     }
+     else if (location.pathname === "/about") {
+        setTitle("About");
+     }
+     else {
+        setTitle("Not Found");
+     }
+  },[location]);
   /* 
     Argument: newTask (originally newTodo)
     Gives newTodo three properties: title, id, and isCompleted
@@ -261,19 +287,63 @@ function App() {
     dispatch({type: todoActions.setQueryString, value});
   }, []);
 
+  const handlePreviousPage = (page) => {
+    if (page > 1) {
+      setSearchParams({page: currentPage - 1});
+    }
+  }
+
+  const handleNextPage = (page) => {
+    if (page < totalPages) {
+      setSearchParams({page: currentPage + 1});
+    }
+  }
+
+  useEffect(() => {
+    if (totalPages > 0) {
+       if (currentPage < 1 || currentPage > totalPages) {
+        navigate("/");
+      }
+    }
+   
+  },[currentPage,totalPages,navigate]);
+
   return (
-    <>
-      <Page 
-      dispatch={dispatch}
-      todoState={todoState}
-      todoActions={todoActions}
-      onAddTodo={handleAddTodo}
-      onCompleteTodo={completeTodo}
-      onUpdateTodo={updateTodo}
-      setSortDirection={handleSetSortDirection}
-      setSortField={handleSetSortField}
-      setQueryString={handleSetQueryString}
-      />
+    <> 
+    <Header title={title}/>
+    <Routes>
+      <Route path="/" element={
+          <TodosPage 
+            dispatch={dispatch}
+            todoState={todoState}
+            todoActions={todoActions}
+            currentTodos={currentTodos}
+            onAddTodo={handleAddTodo}
+            onCompleteTodo={completeTodo}
+            onUpdateTodo={updateTodo}
+            setSortDirection={handleSetSortDirection}
+            setSortField={handleSetSortField}
+            setQueryString={handleSetQueryString}
+          />
+      } />
+      <Route path="/about" element={<About/>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+
+      {/* Hides pagination on About page */}
+    {location.pathname !== "/about" && (
+    <div className={StyledApp.paginationControls}>
+      <button onClick={() => handlePreviousPage(currentPage)} 
+      className={StyledApp.prevBtn}
+      disabled={currentPage === 1}
+      >Previous</button>
+      <span className={StyledApp.pageSpan}>Page {currentPage} of {totalPages}</span>
+      <button onClick={() => handleNextPage(currentPage)} 
+      className={StyledApp.nextBtn}
+      disabled={currentPage === totalPages}
+      >Next</button>
+    </div>
+   ) }
     </> 
   );
 }

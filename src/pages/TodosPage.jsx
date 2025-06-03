@@ -1,21 +1,20 @@
-import StyledPages from '../App.module.css';
+import StyledPages from '../pages/TodosPage.module.css';
 import TodoList from "../features/Todolist/TodoList";
 import AddTodoForm from "../features/TodoForm";
 import ViewForm from "../features/TodosViewForm";
 
-function TodosPage({handleAddTodo,todoState, todoActions,dispatch, onCompleteTodo,
+function TodosPage({onAddTodo,todoState, todoActions,dispatch, currentTodos, onCompleteTodo,
     onUpdateTodo, setSortDirection, setSortField, setQueryString,
 }) {
     return (
         <>
             <div className={StyledPages.catWrapper}>
                 <div className={StyledPages.todoBody}>
-                    <h1>Todo List</h1>
                     {/* onAddTodo is a prop */}
-                    <AddTodoForm onAddTodo={handleAddTodo} isSaving={todoState.isSaving} />
+                    <AddTodoForm onAddTodo={onAddTodo} isSaving={todoState.isSaving} />
 
-                    <TodoList todoList={todoState.todoList} onCompleteTodo={onCompleteTodo} 
-                     onUpdateTodo={onUpdateTodo} isLoading={todoState.isLoading}
+                    <TodoList currentTodos={currentTodos} onCompleteTodo={onCompleteTodo} 
+                     onUpdateTodo={onUpdateTodo} isLoading={todoState.isLoading} 
                     />
                     <hr/>
                     <ViewForm 
