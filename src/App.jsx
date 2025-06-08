@@ -1,9 +1,11 @@
 import "./App.css";
-import { useEffect, useCallback, useReducer } from "react";
-import TodoList from "./features/Todolist/TodoList";
-import AddTodoForm from "./features/TodoForm";
-import ViewForm from "./features/TodosViewForm";
-import StyledApp from './App.module.css';
+import StyledApp from "./App.module.css";
+import { useState, useEffect, useCallback, useReducer } from "react";
+import { useLocation, Routes, Route, useSearchParams, useNavigate } from 'react-router';
+import TodosPage from "./pages/TodosPage";
+import Header from "./shared/HeaderNav";
+import About from "./pages/About";
+import NotFound from "./pages/NotFound";
 
 import {
   todoReducer as todosReducer,
@@ -13,6 +15,21 @@ import {
 
 function App() {
   const [todoState, dispatch] = useReducer(todosReducer, initialTodosState);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const filteredTodoList = todoState.todoList.filter(todo => !todo.isCompleted);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const itemsPerPage = 15;
+  /*
+    the numerical value of the 'page' param in the URL
+    have to parseInt the value since params are always returned as strings
+  */
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const indexOfFirstTodo = (currentPage - 1 ) * itemsPerPage;
+  const indexOfLastTodo = indexOfFirstTodo + itemsPerPage;
+  const currentTodos = filteredTodoList.slice(indexOfFirstTodo, indexOfLastTodo);
+  const totalPages = Math.ceil((filteredTodoList.length)/itemsPerPage);
+  const [title, setTitle] = useState("");
   const baseUrl = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
   const token = `Bearer ${import.meta.env.VITE_PAT}`;
 
@@ -113,7 +130,17 @@ function App() {
     fetchTodos();
   },[encodeURL,todoState.sortField, todoState.sortDirection, baseUrl, todoState.queryString, token]);
 
-
+  useEffect(() => {
+     if (location.pathname === "/") {
+        setTitle("Todo List");
+     }
+     else if (location.pathname === "/about") {
+        setTitle("About");
+     }
+     else {
+        setTitle("Not Found");
+     }
+  },[location]);
   /* 
     Argument: newTask (originally newTodo)
     Gives newTodo three properties: title, id, and isCompleted
@@ -214,32 +241,30 @@ function App() {
     2: Else if current todo.id != id -> return todo
   */
   const completeTodo = async(id) => {
-    const updatedTodos = todoState.todoList.map((todo) => {
-      return todo.id === id ? { ...todo, isCompleted: true } : todo;
-    });
+  
       dispatch({
-         type: todoActions.updatedTodos,
-         updatedTodos: updatedTodos
+         type: todoActions.completeTodos,
+         id
       })
-    //saves original todo by finding it's associated object in the todoList array by each object's id
-    const completedTodo = todoState.todoList.find((todo) => todo.id === id);
-    //fetch request using editedTodos
+
     
     try{
-      await syncTodos({
-         id: completedTodo.id,
-         title: completedTodo.title,
-         isCompleted: true,
-      }) 
+      const todo = todoState.todoList.find((todo) => todo.id === id);
+      const updatedStatus = !todo.isCompleted;
+      await fetch( `${baseUrl}/${id}`, {
+        method: "PATCH",
+        headers : {
+          Authorization: token,
+          "Content-Type" : "application/json",
+        },
+        body: JSON.stringify({fields: { isCompleted: updatedStatus}})
+      })
     }
     catch(error){
       dispatch({
-          type: todoActions.setErrorMessage,
-          error: error
-      })
-      dispatch({
          type: todoActions.revertTodos,
-         completedTodo: completedTodo
+         editedTodo: todoState.todoList,
+         error
       })
     }
     finally{
@@ -262,37 +287,63 @@ function App() {
     dispatch({type: todoActions.setQueryString, value});
   }, []);
 
-  return (
-    <>
-    <div className={StyledApp.catWrapper}>
-      <div className={StyledApp.todoBody}>
-            <h1>Todo List</h1>
-            {/* onAddTodo is a prop */}
-            <AddTodoForm onAddTodo={handleAddTodo} isSaving={todoState.isSaving}/>
-            
-            <TodoList todoList={todoState.todoList} onCompleteTodo={completeTodo} 
-            onUpdateTodo={updateTodo} isLoading={todoState.isLoading}/>
+  const handlePreviousPage = (page) => {
+    if (page > 1) {
+      setSearchParams({page: currentPage - 1});
+    }
+  }
 
-            <hr/>
-            <ViewForm 
-            sortDirection={todoState.sortDirection} 
-            setSortDirection={handleSetSortDirection} 
-            sortField={todoState.sortField} 
+  const handleNextPage = (page) => {
+    if (page < totalPages) {
+      setSearchParams({page: currentPage + 1});
+    }
+  }
+
+  useEffect(() => {
+    if (totalPages > 0) {
+       if (currentPage < 1 || currentPage > totalPages) {
+        navigate("/");
+      }
+    }
+   
+  },[currentPage,totalPages,navigate]);
+
+  return (
+    <> 
+    <Header title={title}/>
+    <Routes>
+      <Route path="/" element={
+          <TodosPage 
+            dispatch={dispatch}
+            todoState={todoState}
+            todoActions={todoActions}
+            currentTodos={currentTodos}
+            onAddTodo={handleAddTodo}
+            onCompleteTodo={completeTodo}
+            onUpdateTodo={updateTodo}
+            setSortDirection={handleSetSortDirection}
             setSortField={handleSetSortField}
-            queryString={todoState.queryString} 
             setQueryString={handleSetQueryString}
-            />
-            <hr/>
-            {/* Evaluates errorMessage */}
-            {todoState.errorMessage && (
-              <div className={StyledApp.error}>
-                <hr />
-                <p>{todoState.errorMessage}</p>
-                <button onClick={() => dispatch({type: todoActions.clearError})}>Dismiss</button>
-              </div>
-            )}
-          </div>
+          />
+      } />
+      <Route path="/about" element={<About/>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+
+      {/* Hides pagination on About page */}
+    {location.pathname !== "/about" && (
+    <div className={StyledApp.paginationControls}>
+      <button onClick={() => handlePreviousPage(currentPage)} 
+      className={StyledApp.prevBtn}
+      disabled={currentPage === 1}
+      >Previous</button>
+      <span className={StyledApp.pageSpan}>Page {currentPage} of {totalPages}</span>
+      <button onClick={() => handleNextPage(currentPage)} 
+      className={StyledApp.nextBtn}
+      disabled={currentPage === totalPages}
+      >Next</button>
     </div>
+   ) }
     </> 
   );
 }

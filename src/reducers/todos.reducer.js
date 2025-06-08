@@ -113,41 +113,35 @@ function todoReducer (state = initialState, action) {
                         id: record.id,
                         ...record.fields,
                         title: record.fields.title,
-                        isCompleted: record.fields.isCompleted,
-                    };
-                    if(!todo.isCompleted) {
-                        //if isCompleted isn't true, set it to false
-                        todo.isCompleted = false;
+                         //if isCompleted isn't true, set it to false
+                        isCompleted: record.fields.isCompleted || false,
                     };
                     return todo;
                 }),
                 isLoading: false,
             };
-       case actions.completeTodos:
+       case actions.completeTodos: {
+            const updatedTodos = state.todoList.map((todo) => 
+                todo.id === action.id ? {...todo, isCompleted: !todo.isCompleted} : todo
+            );
             return {
+                    ...state,
+                    todoList: updatedTodos,
+                };
+       }
+           
+        // uses same logic as updatedTodos
+        case actions.revertTodos:   
+        case actions.updatedTodos: {
+            const updatedState = {
                 ...state,
-                todoList: action.updateTodos,
+                todoList: action.editedTodo,
             };
-        case actions.updatedTodos:
-            return {
-                ...state,
-                todoList: action.updatedTodos,
-            };
-        case actions.revertTodos:
-            return {
-                ...state,
-                todoList: state.todoList.map((todo) => {
-                    //Handle revert from updateTodo
-                    if (action.originalTodo && todo.id === action.originalTodo.id) {
-                        return { ...action.originalTodo };
-                    }
-                    //Handle revert from completeTodo
-                    if (action.completedTodo && todo.id === action.completedTodo.id) {
-                        return { ...action.completeTodo };
-                    }
-                    return todo;
-                }),
-            };
+            if (action.error) {
+                updatedState.errorMessage = action.error.message;
+            }
+            return updatedState;
+        }
         case actions.editedTodos:
             return {
                 ...state,
