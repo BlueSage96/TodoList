@@ -11,7 +11,7 @@
 .title {
     text-align: center;
     position: absolute;
-    left: 550px;
+    left: 900px;
     color: white;
 }
 
@@ -19,7 +19,7 @@ nav {
    display: flex;
    position: absolute;
    top: 0;
-   right: 0;
+   right: 850px;
    gap: 30px;
    margin: 0 6px;
    padding: 0.5rem 2rem;
